@@ -12,7 +12,6 @@ import java.nio.charset.StandardCharsets;
 
 public class HandleClient implements Runnable {
     Socket client;
-    String standartPath = "C:\\Users\\mathe\\OneDrive\\Documentos\\projetos\\WebServer\\www\\";
     public HandleClient(Socket client) {
         this.client = client;
     }
@@ -23,13 +22,8 @@ public class HandleClient implements Runnable {
             System.out.println("Cliente conectado: " + client.getInetAddress());
             OutputStream out = client.getOutputStream();
             String url = getURL();
-            String filePath = standartPath + url.replace("/", "\\");
-            // Ensure directory paths end with a separator
-            if (url.endsWith("/")) {
-                filePath = filePath.substring(0, filePath.length() - 1);
-            }
-            System.out.println("Procurando arquivo: " + filePath);
-            FileHandler fileHandler = new FileHandler(filePath);
+            
+            FileHandler fileHandler = new FileHandler(url);
             String response = new HeadersHandler().getHeaders(fileHandler);
             out.write(response.getBytes(StandardCharsets.UTF_8));
             out.write(fileHandler.getFileBytes());

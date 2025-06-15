@@ -3,27 +3,26 @@ package Server.Files;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class FileHandler {
-    File file;
+    private File file;
+    private static final String BASE_DIRECTORY = "C:\\Users\\mathe\\OneDrive\\Documentos\\projetos\\WebServer\\www\\";
 
-    public FileHandler(String path) {
-        this.file = new File(path);
+    public FileHandler(String path) throws IOException {
+        normalizePath(path);
     }
 
-
-    public boolean fileExists(){
+    public boolean fileExists() {
         return file.exists();
     }
 
-    public boolean fileIsDirectory(){
-        System.out.println("Checking if directory: " + file.getPath());
-        System.out.println("Is directory: " + file.isDirectory());
-        if(file.isDirectory()){
+    public boolean fileIsDirectory() {
+        if (file.isDirectory()) {
             File indexFile = new File(file.getPath() + File.separator + "index.html");
             System.out.println("Looking for index.html at: " + indexFile.getPath());
-            System.out.println("Index.html exists: " + indexFile.exists());
-            if(indexFile.exists()){
+            if (indexFile.exists()) {
                 file = indexFile;
                 return false;
             }
@@ -33,7 +32,7 @@ public class FileHandler {
     }
 
     public byte[] getFileBytes() throws IOException {
-        if(fileIsDirectory()){
+        if (fileIsDirectory()) {
             return new byte[0];
         }
 
@@ -46,11 +45,27 @@ public class FileHandler {
 
     public String getMimeType() throws IOException {
         String mimeType = Files.probeContentType(file.toPath());
-        if (mimeType == null) mimeType = "application/octet-stream";
-        return mimeType;
+        if (mimeType == null)
+            mimeType = "application/octet-stream";
+            return mimeType;
     }
 
     public String getFilePath() {
         return file.getPath();
+    }
+
+    private void normalizePath(String path) throws IOException {
+        String filePath = BASE_DIRECTORY + path.replace("/", "\\");
+        if (filePath.endsWith("/")) {
+            filePath = filePath.substring(0, filePath.length() - 1);
+        }
+
+        Path normalizedPath = Paths.get(filePath).normalize();
+        Path basePath = Paths.get(BASE_DIRECTORY).toAbsolutePath();
+        if (!normalizedPath.startsWith(basePath)) {
+            throw new IOException("Access denied: Path traversal attempt detected");
+        }
+
+        this.file = normalizedPath.toFile();
     }
 }
