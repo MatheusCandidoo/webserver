@@ -1,6 +1,6 @@
 package Server;
 
-import Server.Body.FileHandler;
+import Server.Files.FileHandler;
 import Server.Headers.HeadersHandler;
 
 import java.io.BufferedReader;
@@ -9,11 +9,10 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.NoSuchFileException;
 
 public class HandleClient implements Runnable {
     Socket client;
-    String standartPath = "C:\\Users\\mathe\\OneDrive\\Documentos\\projetos\\WebServer\\www";
+    String standartPath = "C:\\Users\\mathe\\OneDrive\\Documentos\\projetos\\WebServer\\www\\";
     public HandleClient(Socket client) {
         this.client = client;
     }
@@ -23,7 +22,12 @@ public class HandleClient implements Runnable {
         try {
             System.out.println("Cliente conectado: " + client.getInetAddress());
             OutputStream out = client.getOutputStream();
-            String filePath = standartPath+getURL().replace("/", "\\");
+            String url = getURL();
+            String filePath = standartPath + url.replace("/", "\\");
+            // Ensure directory paths end with a separator
+            if (url.endsWith("/")) {
+                filePath = filePath.substring(0, filePath.length() - 1);
+            }
             System.out.println("Procurando arquivo: " + filePath);
             FileHandler fileHandler = new FileHandler(filePath);
             String response = new HeadersHandler().getHeaders(fileHandler);
